@@ -11,11 +11,14 @@ public class ViveInput : MonoBehaviour
     TwoOneTurnResetter twoOneTurnResetter;
     Transform vrCamTransform;
 
+    [SerializeField]
+    bool TilingMode = false;
+
     // Start is calleD before the first frame update
     void Start()
     {
         rm = GameObject.Find("Redirected User").GetComponent<RedirectionManager>();
-        rm.setTilingMode();
+        if(TilingMode) rm.setTilingMode();
         //Debug.Log("Set");
 
         twoOneTurnResetter = GameObject.Find("Redirected User").GetComponent<TwoOneTurnResetter>();

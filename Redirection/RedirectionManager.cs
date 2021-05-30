@@ -168,7 +168,7 @@ public class RedirectionManager : MonoBehaviour {
         CalculateStateChanges();
         //Debug.Log(tilingMode);
 
-
+        Debug.Log(Time.deltaTime);
         // BACK UP IN CASE UNITY TRIGGERS FAILED TO COMMUNICATE RESET (Can happen in high speed simulations)
         if (resetter != null && !inReset && resetter.IsUserOutOfBounds() && !tilingMode)
         {
@@ -211,7 +211,7 @@ public class RedirectionManager : MonoBehaviour {
         if (useManualTime)
             return 1.0f / targetFPS;
         else
-            return Time.deltaTime;
+            return Time.deltaTime; // APF 정상동작: project settin g: fixed timestep: 0.02, time scale: 0.8
     }
 
     public float GetTime()
@@ -422,7 +422,8 @@ public class RedirectionManager : MonoBehaviour {
             resetter.InitializeReset();
             inReset = true;
         }
-        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 바다를 이용하기 필요, 조개줍기 등의 시나리오 필요, 사운드 필요
+        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 리셋 물체 구현 필요,
+                            //바다를 이용하기 필요, 조개줍기 등의 시나리오 필요, 사운드 필요, APF 콜라이더 벽리셋 필요, APF-R 구현 필요, Drawer 보이기 안보이기 필요, 가상 벽 안보이기 필요.
         {
             resetter.InitializeReset();
             inReset = true;

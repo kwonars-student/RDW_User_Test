@@ -91,6 +91,10 @@ public class RedirectionManager : MonoBehaviour {
 
     private float simulatedTime = 0;
 
+    public bool tilingMode = false;
+
+    public bool controllerTriggered = false;
+
     void Awake()
     {
         startTimeOfProgram = System.DateTime.Now.ToString("yyyy MM dd HH:mm:ss");
@@ -162,10 +166,20 @@ public class RedirectionManager : MonoBehaviour {
 
         UpdateCurrentUserState();
         CalculateStateChanges();
+        //Debug.Log(tilingMode);
+
 
         // BACK UP IN CASE UNITY TRIGGERS FAILED TO COMMUNICATE RESET (Can happen in high speed simulations)
-        if (resetter != null && !inReset && resetter.IsUserOutOfBounds())
+        if (resetter != null && !inReset && resetter.IsUserOutOfBounds() && !tilingMode)
         {
+            //Debug.Log("Never Happened");
+            Debug.LogWarning("Reset Aid Helped!");
+            OnResetTrigger();
+        }
+        else if (resetter != null && !inReset && resetter.ControllerTriggered() && tilingMode)
+        {
+            //Debug.Log(controllerTriggered);
+            this.controllerTriggered = false;
             Debug.LogWarning("Reset Aid Helped!");
             OnResetTrigger();
         }
@@ -402,9 +416,14 @@ public class RedirectionManager : MonoBehaviour {
             return;
         //print("NOT IN RESET");
         //print("Is Resetter Null? " + (resetter == null));
-        if (resetter != null && resetter.IsResetRequired())
+        if (resetter != null && resetter.IsResetRequired() && !tilingMode)
         {
             //print("RESET WAS REQUIRED");
+            resetter.InitializeReset();
+            inReset = true;
+        }
+        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 바다를 이용하기 필요, 조개줍기 등의 시나리오 필요, 사운드 필요
+        {
             resetter.InitializeReset();
             inReset = true;
         }
@@ -465,5 +484,15 @@ public class RedirectionManager : MonoBehaviour {
     public void UpdateTrackedSpaceLocation(float x, float z)
     {
         trackedSpace.position = new Vector3(x, 1, z);
+    }
+
+    public void setTilingMode()
+    {
+        this.tilingMode = true;
+    }
+
+    public void setControllerTriggered()
+    {
+        this.controllerTriggered = true;
     }
 }

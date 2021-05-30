@@ -25,8 +25,6 @@ public abstract class Resetter : MonoBehaviour {
 
     public abstract void SimulatedWalkerUpdate();
 
-
-
     public void InjectRotation(float rotationInDegrees)
     {
         this.transform.RotateAround(Utilities.FlattenedPos3D(redirectionManager.headTransform.position), Vector3.up, rotationInDegrees);
@@ -44,6 +42,11 @@ public abstract class Resetter : MonoBehaviour {
     public bool IsUserOutOfBounds()
     {
         return Mathf.Abs(redirectionManager.currPosReal.x) >= maxX || Mathf.Abs(redirectionManager.currPosReal.z) >= maxZ;
+    }
+
+    public bool ControllerTriggered()
+    {
+        return redirectionManager.controllerTriggered;
     }
 
 

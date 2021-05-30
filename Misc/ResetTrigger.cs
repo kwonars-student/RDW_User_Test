@@ -30,7 +30,8 @@ public class ResetTrigger : MonoBehaviour {
 
     void OnTriggerExit(Collider other)
     {
-        if (other == bodyCollider)
+        //Debug.Log("You Did");
+        if (other == bodyCollider && !redirectionManager.tilingMode)
         {
             redirectionManager.OnResetTrigger();
         }

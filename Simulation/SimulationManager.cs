@@ -10,9 +10,9 @@ public class SimulationManager : MonoBehaviour {
 
     //enum AlgorithmChoice { S2C, S2O, GreedyTransGain, S2C_GreedyTransGain, S2O_GreedyTransGain, CenterBased, CenterBasedTransGainSpeedUp, S2C_CenterBasedTransGainSpeedUp, S2O_CenterBasedTransGainSpeedUp, None };
     enum ExperimentChoice { FixedTrackedSpace, VaryingSizes, VaryingShapes };
-    enum AlgorithmChoice {None, S2C, S2O, Zigzag, APF};
+    enum AlgorithmChoice {None, S2C, S2O, Zigzag, APF, RFL};
     enum PathSeedChoice { Office, ExplorationSmall, ExplorationLarge, LongWalk, ZigZag };
-    enum ResetChoice { None, TwoOneTurn };
+    enum ResetChoice { None, TwoOneTurn, APF_R };
 
     //[SerializeField]
     //bool showUserStartAndEndInLastSnapshot;
@@ -29,7 +29,7 @@ public class SimulationManager : MonoBehaviour {
     List<Vector3> gainScaleFactors = new List<Vector3>();
 
     [SerializeField]
-    bool runInSimulationMode = false;
+    public bool runInSimulationMode = false;
 
     [SerializeField]
     AlgorithmChoice condAlgorithm;
@@ -537,18 +537,84 @@ public class SimulationManager : MonoBehaviour {
     public void Initialize()
     {
         redirectionManager.runInTestMode = runInSimulationMode;
+        if(runInSimulationMode)
+        {
+            GameObject.Find("Body").transform.Find("Body Orientation Indicator").gameObject.SetActive(true);
+            GameObject.Find("Body").transform.Find("Body Representation").gameObject.SetActive(true);
+            GameObject.Find("Redirected User").transform.Find("Real Top View Cam").gameObject.SetActive(true);
+            GameObject.Find("Tracked Space/Plane").gameObject.SetActive(true);
+        }
+        else
+        {
+            GameObject.Find("Body").transform.Find("Body Orientation Indicator").gameObject.SetActive(false);
+            GameObject.Find("Body").transform.Find("Body Representation").gameObject.SetActive(false);
+            GameObject.Find("Redirected User").transform.Find("Real Top View Cam").gameObject.SetActive(false);
+            GameObject.Find("Tracked Space/Plane").gameObject.SetActive(false);
+        }
         userIsWalking = !(redirectionManager.MOVEMENT_CONTROLLER == RedirectionManager.MovementController.AutoPilot);
         if (redirectionManager.MOVEMENT_CONTROLLER == RedirectionManager.MovementController.AutoPilot)
             DISTANCE_TO_WAYPOINT_THRESHOLD = 0.05f;// 0.0001f;
         
-        if (redirectionManager.MOVEMENT_CONTROLLER != RedirectionManager.MovementController.Tracker)
+        if (runInSimulationMode)
         {
             InstantiateSimulationPrefab();
         }
-
-        if (redirectionManager.MOVEMENT_CONTROLLER == RedirectionManager.MovementController.Tracker)
-            return;
-
+        else
+        {
+            System.Type redirectorType = null;
+            System.Type resetterType = null;
+            switch (condAlgorithm)
+            {
+                case AlgorithmChoice.None:
+                    redirectorType = typeof(NullRedirector);
+                    break;
+                case AlgorithmChoice.S2C:
+                    redirectionManager.gameObject.AddComponent<S2CRedirector>();
+                    redirectorType = typeof(S2CRedirector);
+                    break;
+                case AlgorithmChoice.S2O:
+                    redirectorType = typeof(S2ORedirector);
+                    break;
+                case AlgorithmChoice.Zigzag:
+                    redirectorType = typeof(ZigZagRedirector);
+                    break;
+                case AlgorithmChoice.APF:
+                    redirectionManager.gameObject.AddComponent<APFRedirector>();
+                    redirectorType = typeof(APFRedirector);
+                    break;
+                case AlgorithmChoice.RFL:
+                    redirectionManager.gameObject.AddComponent<RFLRedirector>();
+                    redirectionManager.tilingMode = true;
+                    redirectorType = typeof(RFLRedirector);
+                    break;
+                //case 4:
+                //    algorithmChoice = AlgorithmChoice.CenterBasedTransGainSpeedUp;
+                //    break;
+                //case 5:
+                //    algorithmChoice = AlgorithmChoice.S2C_CenterBasedTransGainSpeedUp;
+                //    break;
+                //case 6:
+                //    algorithmChoice = AlgorithmChoice.S2O_CenterBasedTransGainSpeedUp;
+                //    break;
+            }
+            switch (condReset)
+            {
+                case ResetChoice.None:
+                    redirectionManager.gameObject.AddComponent<NullResetter>();
+                    resetterType = typeof(NullResetter);
+                    break;
+                case ResetChoice.TwoOneTurn:
+                    redirectionManager.gameObject.AddComponent<TwoOneTurnResetter>();
+                    resetterType = typeof(TwoOneTurnResetter);
+                    break;
+                case ResetChoice.APF_R:
+                    redirectionManager.gameObject.AddComponent<APF_R_Resetter>();
+                    resetterType = typeof(APF_R_Resetter);
+                    break;
+            }
+            return ;
+        }
+        
         //redirectionManager.simulationDataLogger.generateBatchFiles();
 
         // Read From Command Line
@@ -652,6 +718,7 @@ public class SimulationManager : MonoBehaviour {
                     redirectorType = typeof(NullRedirector);
                     break;
                 case AlgorithmChoice.S2C:
+                    redirectionManager.gameObject.AddComponent<S2CRedirector>();
                     redirectorType = typeof(S2CRedirector);
                     break;
                 case AlgorithmChoice.S2O:
@@ -661,7 +728,12 @@ public class SimulationManager : MonoBehaviour {
                     redirectorType = typeof(ZigZagRedirector);
                     break;
                 case AlgorithmChoice.APF:
+                    redirectionManager.gameObject.AddComponent<APFRedirector>();
                     redirectorType = typeof(APFRedirector);
+                    break;
+                case AlgorithmChoice.RFL:
+                    redirectionManager.gameObject.AddComponent<RFLRedirector>();
+                    redirectorType = typeof(RFLRedirector);
                     break;
                 //case 4:
                 //    algorithmChoice = AlgorithmChoice.CenterBasedTransGainSpeedUp;
@@ -676,10 +748,16 @@ public class SimulationManager : MonoBehaviour {
             switch (condReset)
             {
                 case ResetChoice.None:
+                    redirectionManager.gameObject.AddComponent<NullResetter>();
                     resetterType = typeof(NullResetter);
                     break;
                 case ResetChoice.TwoOneTurn:
+                    redirectionManager.gameObject.AddComponent<TwoOneTurnResetter>();
                     resetterType = typeof(TwoOneTurnResetter);
+                    break;
+                case ResetChoice.APF_R:
+                    redirectionManager.gameObject.AddComponent<APF_R_Resetter>();
+                    resetterType = typeof(APF_R_Resetter);
                     break;
             }
             // BY DEFAULT ONLY ONE TYPE
@@ -820,13 +898,13 @@ public class SimulationManager : MonoBehaviour {
 	
     // Use this for initialization
 	void Start () {
-	
 	}
 	
 	// Update is called once per frame
     void FixedUpdate()
     {
-        if (redirectionManager.MOVEMENT_CONTROLLER == RedirectionManager.MovementController.Tracker)
+        //if (redirectionManager.MOVEMENT_CONTROLLER == RedirectionManager.MovementController.Tracker)
+        if (!runInSimulationMode)
             return;
         //framesGoneBy++;
         //if (firstUpdateRealTime == 0)

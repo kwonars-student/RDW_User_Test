@@ -27,7 +27,7 @@ public abstract class Resetter : MonoBehaviour {
 
     public void InjectRotation(float rotationInDegrees)
     {
-        this.transform.RotateAround(Utilities.FlattenedPos3D(redirectionManager.headTransform.position), Vector3.up, rotationInDegrees);
+        this.transform.RotateAround(Utilities.FlattenedPos3D(redirectionManager.headTransform.position), Vector3.up, rotationInDegrees); // 리셋 시 회전속도 결정
         this.GetComponentInChildren<KeyboardController>().SetLastRotation(rotationInDegrees);
         redirectionManager.statisticsLogger.Event_Rotation_Gain_Reorientation(rotationInDegrees / redirectionManager.deltaDir, rotationInDegrees);
     }
@@ -41,7 +41,7 @@ public abstract class Resetter : MonoBehaviour {
 
     public bool IsUserOutOfBounds()
     {
-        return Mathf.Abs(redirectionManager.currPosReal.x) >= maxX || Mathf.Abs(redirectionManager.currPosReal.z) >= maxZ;
+        return Mathf.Abs(redirectionManager.currPosReal.x) >= maxX - 0.02 || Mathf.Abs(redirectionManager.currPosReal.z) >= maxZ - 0.02;
     }
 
     public bool ControllerTriggered()

@@ -1,16 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// This type of reset injects a 180 rotation. It will show a prompt to the user once at the full rotation is applied and the user is roughly looking at the original direction.
-/// The method is simply doubling the rotation amount. No smoothing is applied. No specific rotation is enforced this way.
-/// </summary>
-public class TwoOneTurnResetter : Resetter {
-
-    ///// <summary>
-    ///// The user must return to her original orientation for the reset to let go. Up to this amount of error is allowed.
-    ///// </summary>
-    //float MAX_ORIENTATION_RETURN_ERROR = 15;
+public class RFL_Resetter : Resetter {
 
     float overallInjectedRotation;
     
@@ -26,6 +17,10 @@ public class TwoOneTurnResetter : Resetter {
     public override void InitializeReset()
     {
         overallInjectedRotation = 0;
+        for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
+        {
+            GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(false);
+        }
         SetHUD();
     }
 
@@ -40,6 +35,10 @@ public class TwoOneTurnResetter : Resetter {
                 InjectRotation(remainingRotation);
                 redirectionManager.OnResetEnd();
                 overallInjectedRotation += remainingRotation;
+                for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
+                {
+                    GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(true);
+                }
             }
             else
             {

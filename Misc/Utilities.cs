@@ -69,5 +69,35 @@ namespace Redirection
         {
             return Mathf.Approximately(v0.x, v1.x) && Mathf.Approximately(v0.y, v1.y);
         }
+
+    public static Vector3 CastVector2Dto3D(Vector2 vec2, float height = 0) {
+        int significantDigit = 5;
+        float significant = Mathf.Pow(10, significantDigit);
+
+        float xValue = Mathf.Floor(vec2.x * significant) / significant;
+        float yValue = Mathf.Floor(vec2.y * significant) / significant;
+
+        return new Vector3(xValue, height, yValue);
+    }
+    public static Vector2 CastVector3Dto2D(Vector3 vec3) {
+        int significantDigit = 5; 
+        float significant = Mathf.Pow(10, significantDigit);
+
+        float xValue = Mathf.Floor(vec3.x * significant) / significant; // 0.6666667 이면 0.666666 으로 버림
+        float zValue = Mathf.Floor(vec3.z * significant) / significant;
+
+        return new Vector2(xValue, zValue);
+    }
+
+    public static Quaternion CastRotation2Dto3D(float degree)
+    {
+        return Quaternion.Euler(0, -degree, 0);
+    }
+
+    public static Vector2 RotateVector2(Vector2 vec, float degree)  // 시계 반대방향으로 회전함.
+    {
+        Vector2 rotated = CastVector3Dto2D(CastRotation2Dto3D(degree) * CastVector2Dto3D(vec));
+        return rotated;
+    }
     }
 }

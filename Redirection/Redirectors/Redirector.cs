@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Redirection;
 
 public abstract class Redirector : MonoBehaviour
@@ -7,8 +8,6 @@ public abstract class Redirector : MonoBehaviour
     [HideInInspector]
     public RedirectionManager redirectionManager;
 
-    
-      
     /// <summary>
     /// Applies redirection based on the algorithm.
     /// </summary>

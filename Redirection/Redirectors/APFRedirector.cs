@@ -5,6 +5,8 @@ using System.Linq;
 using Redirection;
 
 public class APFRedirector : Redirector {
+    GameObject lineObject;
+    LineRenderer LineRenderer;
 
     // HODGSON_MIN(MAX)_CURVATURE_GAIN = 1 / redirectionManager.CURVATURE_RADIUS
     // MIN_ROTATION_GAIN = redirectionManager.MIN_ROT_GAIN
@@ -35,152 +37,39 @@ public class APFRedirector : Redirector {
     private float rotationFromRotationGain; //Proposed rotation gain based on head's yaw
     private float lastRotationApplied = 0f;
 
-    // Realspace
-    private List<Vector2> vertices;
-    private List<Vector2> verticesW;
-    private List<Vector2> verticesT;
-    private List<Vector2> verticesS;
-    private List<Vector2> segmentedVertices;
-    private List<Vector2> segmentNormalVectors;
-    private List<float> segmentedEdgeLengths;
-    private float segNo = 50f;
-
-    public APFRedirector()
-    {
-        SetVertices();
-        SetSegmentedVertices(this.verticesS); // choose realspace type
-        SetSegmentNormalVectors(this.verticesS);
-        SetSegmentedEdgeLengths(this.verticesS);
-    }
-
-    private void SetVertices()
-    {
-        List<Vector2> verticesW = new List<Vector2>();
-        List<Vector2> verticesT = new List<Vector2>();
-        List<Vector2> verticesS = new List<Vector2>();
-
-        // Western Room
-        verticesW.Add(new Vector2(-2f, 1.5f));
-        verticesW.Add(new Vector2(-0.5f, 1.5f));
-        verticesW.Add(new Vector2(-0.5f, 2f));
-        verticesW.Add(new Vector2(2f, 2f));
-        verticesW.Add(new Vector2(2f, -2f));
-        verticesW.Add(new Vector2(1f, -2f));
-        verticesW.Add(new Vector2(1f, 0f));
-        verticesW.Add(new Vector2(-0.5f, 0f));
-        verticesW.Add(new Vector2(-0.5f, -2f));
-        verticesW.Add(new Vector2(-1.5f, -2f));
-        verticesW.Add(new Vector2(-1.5f, -0.25f));
-        verticesW.Add(new Vector2(-2f, -0.25f));
-
-        // Short T Type
-        verticesT.Add(new Vector2(-2f, 2f/3f));
-        verticesT.Add(new Vector2(2f, 2f/3f));
-        verticesT.Add(new Vector2(2f, -2f/3f));
-        verticesT.Add(new Vector2(2f/3f, -2f/3f));
-        verticesT.Add(new Vector2(2f/3f, -2f));
-        verticesT.Add(new Vector2(-2f/3f, -2f));
-        verticesT.Add(new Vector2(-2f/3f, -2f/3f));
-        verticesT.Add(new Vector2(-2f, -2f/3f));
-
-        // Square Type
-        verticesS.Add(new Vector2(2f, 2f));
-        verticesS.Add(new Vector2(2f, -2f));
-        verticesS.Add(new Vector2(-2f, -2f));
-        verticesS.Add(new Vector2(-2f, 2f));
-
-        this.verticesW = verticesW;
-        this.verticesT = verticesT;
-        this.verticesS = verticesS;
-    }
-
-    private void SetSegmentedVertices(List<Vector2> vertices)
-    {
-        float segNo = this.segNo;
-        this.vertices = vertices; // Choose real space type here
-        List<Vector2> segmentedVertices = new List<Vector2>();
-        for(int i = 0 ; i < vertices.Count; i++)
-        {
-            if(vertices.Count <= i+1)
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    float jFloat = (float) j;
-                    segmentedVertices.Add((vertices[0] - vertices[vertices.Count-1])*jFloat/segNo + vertices[vertices.Count-1] - (vertices[0] - vertices[vertices.Count-1])/(2*segNo));
-                }
-            }
-            else
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    float jFloat = (float) j;
-                    segmentedVertices.Add((vertices[i+1] - vertices[i])*jFloat/segNo + vertices[i] - (vertices[i+1] - vertices[i])/(2*segNo));
-                }
-            }
-        }
-
-        this.segmentedVertices = segmentedVertices;
-    }
-    private void SetSegmentNormalVectors(List<Vector2> vertices)
-    {
-        float segNo = this.segNo;
-        this.vertices = vertices; // Choose real space type here
-        List<Vector2> segmentNormalVectors = new List<Vector2>();
-        for(int i = 0 ; i < vertices.Count; i++)
-        {
-            if(vertices.Count <= i+1)
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    segmentNormalVectors.Add(  RotateVector2( ( (vertices[0] - vertices[vertices.Count-1])/segNo ).normalized, -90)   );
-                }
-            }
-            else
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    segmentNormalVectors.Add(  RotateVector2( ( (vertices[i+1] - vertices[i])/segNo ).normalized, -90)   );
-                }
-            }
-        }
-
-        this.segmentNormalVectors = segmentNormalVectors;
-    }
-    private void SetSegmentedEdgeLengths(List<Vector2> vertices)
-    {
-        float segNo = this.segNo;
-        this.vertices = vertices; // Choose real space type here
-        List<float> segmentedEdgeLengths = new List<float>();
-        for(int i = 0 ; i < vertices.Count; i++)
-        {
-            if(vertices.Count <= i+1)
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    segmentedEdgeLengths.Add( ((vertices[0] - vertices[vertices.Count-1])/segNo).magnitude);
-                }
-            }
-            else
-            {
-                for(int j = 1; j <= segNo; j++ )
-                {
-                    segmentedEdgeLengths.Add( ((vertices[i+1] - vertices[i])/segNo).magnitude);
-                }
-            }
-        }
-
-        this.segmentedEdgeLengths = segmentedEdgeLengths;
-    }
+    bool lineInitialized=false;
 
     public override void ApplyRedirection()
     {
         (Vector2 w, float t) = GetWandT();
 
+        //Debug.DrawRay (redirectionManager.currPos, new Vector3(10000*w.x, 1f ,10000*w.y), Color.green);
+        //Debug.Log("redirectionManager.currPos: "+redirectionManager.currPos);
+
         currentTarget = redirectionManager.trackedSpace;
-        w = RotateVector2(w,-currentTarget.rotation.eulerAngles.y);
+        w = Utilities.RotateVector2(w,-currentTarget.rotation.eulerAngles.y);
         //Debug.Log("w:"+10000*w);
         //Vector3 currentTargetPosition = new Vector3(redirectionManager.currPos.x + w.x, redirectionManager.currPos.y, redirectionManager.currPos.z + w.y);
         
+
+        if(!lineInitialized && redirectionManager.simulationManager.runInSimulationMode)
+        {
+            lineObject = new GameObject("Line");
+            LineRenderer = lineObject.AddComponent<LineRenderer>();
+            LineRenderer.startWidth = 0.2f;
+            LineRenderer.endWidth = 0f;
+
+            lineInitialized = true;
+        }
+        
+        if(lineInitialized)
+        {
+            LineRenderer.SetPosition(0, new Vector3(redirectionManager.currPos.x, 0.5f ,redirectionManager.currPos.z));
+            LineRenderer.SetPosition(1, new Vector3(10*w.x+redirectionManager.currPos.x, 0.5f ,10f*w.y+redirectionManager.currPos.z));
+        }
+        
+
+
         // Get Required Data
         Vector3 deltaPos = redirectionManager.deltaPos;
         float deltaDir = redirectionManager.deltaDir;
@@ -269,7 +158,6 @@ public class APFRedirector : Redirector {
             InjectCurvature(finalRotation);
     }
 
-
     private (Vector2, float) GetWandT()
     {
         const float C = 0.00897f;
@@ -281,19 +169,14 @@ public class APFRedirector : Redirector {
         // define some variables for redirection
         Vector2 userPosition = new Vector2(redirectionManager.currPosReal.x, redirectionManager.currPosReal.z);
 
-        List<Vector2> segmentedVertices = this.segmentedVertices;
-        List<Vector2> segmentNormalVectors = this.segmentNormalVectors;
-        List<float> segmentedEdgeLengths = this.segmentedEdgeLengths;
-
         List<Vector2> dList = new List<Vector2>();
         List<float> dListMagnitude = new List<float>();
         List<Vector2> dNormalizedList = new List<Vector2>();
         List<float> inverseDList = new List<float>();
 
-
-        for(int i=0; i < segmentedVertices.Count; i++)
+        for(int i=0; i < GeometryInfo.segmentedVertices.Count; i++)
         {
-            dList.Add(userPosition - segmentedVertices[i]);
+            dList.Add(userPosition - GeometryInfo.segmentedVertices[i]);
         }
 
         for(int i=0; i < dList.Count; i++)
@@ -312,11 +195,13 @@ public class APFRedirector : Redirector {
         }
 
         Vector2 w = Vector2.zero;
-        for(int i=0; i < segmentedVertices.Count; i++)
+        for(int i=0; i < GeometryInfo.segmentedVertices.Count; i++)
         {
-            if(Vector2.Dot(segmentNormalVectors[i], dNormalizedList[i]) > 0)
+            if(Vector2.Dot(GeometryInfo.segmentNormalVectors[i], dNormalizedList[i]) > 0)
             {
-                w += C*segmentedEdgeLengths[i]*dNormalizedList[i]*inverseDList[i];
+                // Debug.Log("GeometryInfo.segmentedVertices["+i+"]: "+GeometryInfo.segmentedVertices[i]);
+                // Debug.Log("GeometryInfo.segmentNormalVectors["+i+"]: "+GeometryInfo.segmentNormalVectors[i]);
+                w += C*GeometryInfo.segmentedEdgeLengths[i]*dNormalizedList[i]*inverseDList[i];
             }
             else
             {
@@ -325,34 +210,5 @@ public class APFRedirector : Redirector {
         }
 
         return (w, 1 - dListMagnitude.Min()*Mathf.Abs(1/r));
-    }
-    public static Vector3 CastVector2Dto3D(Vector2 vec2, float height = 0) {
-        int significantDigit = 5;
-        float significant = Mathf.Pow(10, significantDigit);
-
-        float xValue = Mathf.Floor(vec2.x * significant) / significant;
-        float yValue = Mathf.Floor(vec2.y * significant) / significant;
-
-        return new Vector3(xValue, height, yValue);
-    }
-    public static Vector2 CastVector3Dto2D(Vector3 vec3) {
-        int significantDigit = 5; 
-        float significant = Mathf.Pow(10, significantDigit);
-
-        float xValue = Mathf.Floor(vec3.x * significant) / significant; // 0.6666667 이면 0.666666 으로 버림
-        float zValue = Mathf.Floor(vec3.z * significant) / significant;
-
-        return new Vector2(xValue, zValue);
-    }
-
-    public static Quaternion CastRotation2Dto3D(float degree)
-    {
-        return Quaternion.Euler(0, -degree, 0);
-    }
-
-    public static Vector2 RotateVector2(Vector2 vec, float degree)  // 시계 반대방향으로 회전함.
-    {
-        Vector2 rotated = CastVector3Dto2D(CastRotation2Dto3D(degree) * CastVector2Dto3D(vec));
-        return rotated;
     }
 }

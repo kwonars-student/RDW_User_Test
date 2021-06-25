@@ -1,15 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Redirection;
+
 public class RedirectionManager : MonoBehaviour {
 
     public enum MovementController { Keyboard, AutoPilot, Tracker };
 
     [Tooltip("Select if you wish to run simulation from commandline in Unity batchmode.")]
+    [HideInInspector]
     public bool runInTestMode = false;
 
     [Tooltip("How user movement is controlled.")]
-    public MovementController MOVEMENT_CONTROLLER = MovementController.Tracker;
+    public MovementController MOVEMENT_CONTROLLER;
     
     [Tooltip("Maximum translation gain applied")]
     [Range(0, 5)]
@@ -39,9 +42,6 @@ public class RedirectionManager : MonoBehaviour {
 
     [Tooltip("Target simulated framerate in auto-pilot mode")]
     public float targetFPS = 60;
-    
-    
-
     
     [HideInInspector]
     public Transform body;
@@ -88,16 +88,22 @@ public class RedirectionManager : MonoBehaviour {
 
     [HideInInspector]
     public string startTimeOfProgram;
-
     private float simulatedTime = 0;
 
+    [HideInInspector]
+    public GeometryInfo geometryInfo;
+    
+    [HideInInspector]
     public bool tilingMode = false;
-
     public bool controllerTriggered = false;
+
+    public GeometryInfo.SpaceShape spaceShape;
 
     void Awake()
     {
         startTimeOfProgram = System.DateTime.Now.ToString("yyyy MM dd HH:mm:ss");
+
+        getGeometryInfo();
 
         GetBody();
         GetTrackedSpace();
@@ -130,18 +136,21 @@ public class RedirectionManager : MonoBehaviour {
         SetReferenceForBodyHeadFollower();
 
         // The rule is to have RedirectionManager call all "Awake"-like functions that rely on RedirectionManager as an "Initialize" call.
-        resetTrigger.Initialize();
+        if(!simulationManager.runInSimulationMode) resetTrigger.Initialize();
         // Resetter needs ResetTrigger to be initialized before initializing itself
         if (resetter != null)
             resetter.Initialize();
 
-        if (runInTestMode)
+        if (simulationManager.runInSimulationMode)
         {
             MOVEMENT_CONTROLLER = MovementController.AutoPilot;
-        }
-        if (MOVEMENT_CONTROLLER != MovementController.Tracker)
-        {
             headTransform = simulatedHead;
+            //GameObject.Find("Tracked Space/Plane").gameObject.SetActive(true);
+        }
+        else
+        {
+            MOVEMENT_CONTROLLER = MovementController.Tracker;
+            //GameObject.Find("Tracked Space/Plane").gameObject.SetActive(false);
         }
 
     }
@@ -168,7 +177,6 @@ public class RedirectionManager : MonoBehaviour {
         CalculateStateChanges();
         //Debug.Log(tilingMode);
 
-        Debug.Log(Time.deltaTime);
         // BACK UP IN CASE UNITY TRIGGERS FAILED TO COMMUNICATE RESET (Can happen in high speed simulations)
         if (resetter != null && !inReset && resetter.IsUserOutOfBounds() && !tilingMode)
         {
@@ -252,6 +260,7 @@ public class RedirectionManager : MonoBehaviour {
         {
             // NOTE: This requires that getBody gets called before this
             resetTrigger.bodyCollider = body.GetComponentInChildren<CapsuleCollider>();
+            // Debug.Log("resetTrigger.bodyCollider.radius: "+resetTrigger.bodyCollider.radius);
         }
     }
 
@@ -317,6 +326,14 @@ public class RedirectionManager : MonoBehaviour {
         if (redirector == null)
             this.gameObject.AddComponent<NullRedirector>();
         redirector = this.gameObject.GetComponent<Redirector>();
+
+        if(tilingMode)
+        {
+            for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
+            {
+                GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(true);
+            }
+        }
     }
 
     void GetResetter()
@@ -416,14 +433,15 @@ public class RedirectionManager : MonoBehaviour {
             return;
         //print("NOT IN RESET");
         //print("Is Resetter Null? " + (resetter == null));
+        //Debug.Log("resetter.IsResetRequired(): "+resetter.IsResetRequired());
         if (resetter != null && resetter.IsResetRequired() && !tilingMode)
         {
             //print("RESET WAS REQUIRED");
             resetter.InitializeReset();
             inReset = true;
         }
-        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 리셋 물체 구현 필요,
-                            //바다를 이용하기 필요, 조개줍기 등의 시나리오 필요, 사운드 필요, APF 콜라이더 벽리셋 필요, APF-R 구현 필요, Drawer 보이기 안보이기 필요, 가상 벽 안보이기 필요.
+        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 리셋 물체 구현 필요 v,
+                            // 조개줍기 등의 시나리오 필요, 사운드 필요, Drawer 보이기 안보이기 필요
         {
             resetter.InitializeReset();
             inReset = true;
@@ -495,5 +513,10 @@ public class RedirectionManager : MonoBehaviour {
     public void setControllerTriggered()
     {
         this.controllerTriggered = true;
+    }
+
+    public void getGeometryInfo()
+    {
+        geometryInfo = new GeometryInfo(spaceShape);
     }
 }

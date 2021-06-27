@@ -44,7 +44,7 @@ public class APFRedirector : Redirector {
         (Vector2 w, float t) = GetWandT();
 
         //Debug.DrawRay (redirectionManager.currPos, new Vector3(10000*w.x, 1f ,10000*w.y), Color.green);
-        //Debug.Log("redirectionManager.currPos: "+redirectionManager.currPos);
+        // Debug.Log("redirectionManager.trackedSpace.position: "+redirectionManager.trackedSpace.position);
 
         currentTarget = redirectionManager.trackedSpace;
         w = Utilities.RotateVector2(w,-currentTarget.rotation.eulerAngles.y);

@@ -16,10 +16,10 @@ public class CollisionChecker : MonoBehaviour {
 
     void OnTriggerEnter(Collider other)
     {
-        if (other == colliderObject && Vector3.Dot(this.transform.up, redirectionManager.currDir) < 0)
+        if (other == colliderObject && Vector3.Dot(this.transform.up, redirectionManager.currDir) < 0 && !redirectionManager.tilingMode)
         {
             redirectionManager.OnResetTrigger();
-            Debug.Log(this.transform.name);
+            //Debug.Log(this.transform.name);
             //Debug.Log();
         }
     }

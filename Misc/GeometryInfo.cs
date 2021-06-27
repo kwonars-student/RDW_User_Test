@@ -17,6 +17,7 @@ namespace Redirection
         
         public static List<Vector2> middleVertices; // APF-R용.
         public static List<Vector2> edgeNormalVectors; // APF-R용.
+        public static List<Vector2> resetLocations; // RFL용
 
         public GeometryInfo(SpaceShape spaceShape)
         {
@@ -36,6 +37,7 @@ namespace Redirection
         public void getVertices(SpaceShape spaceShape)
         {
             List<Vector2> spaceVertices = new List<Vector2>();
+            List<Vector2> spaceResetLocations = new List<Vector2>();
 
             // Western Room
             if(spaceShape == SpaceShape.RoomType)
@@ -52,6 +54,11 @@ namespace Redirection
                 spaceVertices.Add(new Vector2(-1.5f, -2f));
                 spaceVertices.Add(new Vector2(-1.5f, -0.25f));
                 spaceVertices.Add(new Vector2(-2f, -0.25f));
+
+                spaceResetLocations.Add(new Vector2(1f, 2f));
+                spaceResetLocations.Add(new Vector2(2f, 0f));
+                spaceResetLocations.Add(new Vector2(-1f, -2f));
+                spaceResetLocations.Add(new Vector2(-2f, 0f));
             }
             // Short T Type
             else if(spaceShape == SpaceShape.TType)
@@ -64,6 +71,11 @@ namespace Redirection
                 spaceVertices.Add(new Vector2(-2f/3f, -2f));
                 spaceVertices.Add(new Vector2(-2f/3f, -2f/3f));
                 spaceVertices.Add(new Vector2(-2f, -2f/3f));
+
+                spaceResetLocations.Add(new Vector2(0f, 2f/3f));
+                spaceResetLocations.Add(new Vector2(2f, 0f));
+                spaceResetLocations.Add(new Vector2(0f, -2f));
+                spaceResetLocations.Add(new Vector2(-2f, 0f));
             }
             // Square Type
             else if(spaceShape == SpaceShape.SquareType)
@@ -72,9 +84,15 @@ namespace Redirection
                 spaceVertices.Add(new Vector2(2f, -2f));
                 spaceVertices.Add(new Vector2(-2f, -2f));
                 spaceVertices.Add(new Vector2(-2f, 2f));
+
+                spaceResetLocations.Add(new Vector2(0f, 2f));
+                spaceResetLocations.Add(new Vector2(2f, 0f));
+                spaceResetLocations.Add(new Vector2(0f, -2f));
+                spaceResetLocations.Add(new Vector2(-2f, 0f));
             }
             
             vertices = spaceVertices;
+            resetLocations = spaceResetLocations;
         }
 
         private void getSegmentedVertices()

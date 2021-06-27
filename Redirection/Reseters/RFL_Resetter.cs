@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using Redirection;
 
 public class RFL_Resetter : Resetter {
 
@@ -8,6 +9,12 @@ public class RFL_Resetter : Resetter {
     private Transform prefabHUD = null;
     
     Transform instanceHUD;
+
+    Vector3 virtualCenter;
+
+    ResetTriggeringController rtc;
+
+    int resetIndex = 0;
 
     public override bool IsResetRequired()
     {
@@ -21,11 +28,14 @@ public class RFL_Resetter : Resetter {
         {
             GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(false);
         }
+        virtualCenter = redirectionManager.trackedSpace.position; //current Plane 위치
+        rtc = GameObject.Find("Redirected User").GetComponent<ResetTriggeringController>();
         SetHUD();
     }
 
     public override void ApplyResetting()
     {
+
         //Debug.Log("currDirReal: "+ new Vector2(redirectionManager.currDirReal.x, redirectionManager.currDirReal.z).normalized + 0f*redirectionManager.currDirReal);
         if (Mathf.Abs(overallInjectedRotation) < 180)
         {
@@ -39,6 +49,107 @@ public class RFL_Resetter : Resetter {
                 {
                     GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(true);
                 }
+
+                // Move Up
+                if(rtc.minIndex == 0 && state == 1)
+                {
+                    state = 3;
+                    resetIndex = 0;
+                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
+                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                }
+                else if(rtc.minIndex == 0 && state == 2)
+                {
+                    state = 4;
+                    resetIndex = 2;
+                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
+                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                }
+                else if(rtc.minIndex == 0 && state == 3)
+                {
+                    state = 1;
+                    resetIndex = 2;
+                }
+                else if(rtc.minIndex == 0 && state == 4)
+                {
+                    state = 2;
+                    resetIndex = 0;
+                }
+
+                // Move Right
+                else if(rtc.minIndex == 1 && state == 1)
+                {
+                    state = 2;
+                    resetIndex = 1;
+                }
+                else if(rtc.minIndex == 1 && state == 2)
+                {
+                    state = 1;
+                    resetIndex = 3;
+                }
+                else if(rtc.minIndex == 1 && state == 3)
+                {
+                    state = 4;
+                    resetIndex = 3;
+                }
+                else if(rtc.minIndex == 1 && state == 4)
+                {
+                    state = 3;
+                    resetIndex = 1;
+                }
+
+                // Move Down
+                else if(rtc.minIndex == 2 && state == 1)
+                {
+                    state = 3;
+                    resetIndex = 2;
+                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
+                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                }
+                else if(rtc.minIndex == 2 && state == 2)
+                {
+                    state = 4;
+                    resetIndex = 0;
+                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
+                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                }
+                else if(rtc.minIndex == 2 && state == 3)
+                {
+                    state = 1;
+                    resetIndex = 0;
+                }
+                else if(rtc.minIndex == 2 && state == 4)
+                {
+                    state = 2;
+                    resetIndex = 2;
+                }
+
+                // Move Left
+                else if(rtc.minIndex == 3 && state == 1)
+                {
+                    state = 2;
+                    resetIndex = 3;
+                }
+                else if(rtc.minIndex == 3 && state == 2)
+                {
+                    state = 1;
+                    resetIndex = 1;
+                }
+                else if(rtc.minIndex == 3 && state == 3)
+                {
+                    state = 4;
+                    resetIndex = 1;
+                }
+                else if(rtc.minIndex == 3 && state == 4)
+                {
+                    state = 3;
+                    resetIndex = 3;
+                }
+
+                Vector3 movedVector = redirectionManager.trackedSpace.position - virtualCenter;
+                Vector3 expectedVector = 2*(new Vector3(GeometryInfo.resetLocations[resetIndex].x, 0f, GeometryInfo.resetLocations[resetIndex].y));
+                GameObject.Find("Terrain").gameObject.transform.position = GameObject.Find("Terrain").gameObject.transform.position - (expectedVector - movedVector);
+                virtualCenter = redirectionManager.trackedSpace.position;
             }
             else
             {

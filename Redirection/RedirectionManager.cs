@@ -145,12 +145,10 @@ public class RedirectionManager : MonoBehaviour {
         {
             MOVEMENT_CONTROLLER = MovementController.AutoPilot;
             headTransform = simulatedHead;
-            //GameObject.Find("Tracked Space/Plane").gameObject.SetActive(true);
         }
         else
         {
             MOVEMENT_CONTROLLER = MovementController.Tracker;
-            //GameObject.Find("Tracked Space/Plane").gameObject.SetActive(false);
         }
 
     }

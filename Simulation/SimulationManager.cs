@@ -12,7 +12,7 @@ public class SimulationManager : MonoBehaviour {
     enum ExperimentChoice { FixedTrackedSpace, VaryingSizes, VaryingShapes };
     enum AlgorithmChoice {None, S2C, S2O, Zigzag, APF, RFL};
     enum PathSeedChoice { Office, ExplorationSmall, ExplorationLarge, LongWalk, ZigZag };
-    enum ResetChoice { None, TwoOneTurn, APF_R };
+    enum ResetChoice { None, TwoOneTurn, APF_R, RFL_R };
 
     //[SerializeField]
     //bool showUserStartAndEndInLastSnapshot;
@@ -611,6 +611,11 @@ public class SimulationManager : MonoBehaviour {
                     redirectionManager.gameObject.AddComponent<APF_R_Resetter>();
                     resetterType = typeof(APF_R_Resetter);
                     break;
+                case ResetChoice.RFL_R:
+                    redirectionManager.gameObject.AddComponent<RFL_Resetter>();
+                    redirectionManager.gameObject.AddComponent<ResetTriggeringController>();
+                    resetterType = typeof(RFL_Resetter);
+                    break;
             }
             return ;
         }
@@ -758,6 +763,11 @@ public class SimulationManager : MonoBehaviour {
                 case ResetChoice.APF_R:
                     redirectionManager.gameObject.AddComponent<APF_R_Resetter>();
                     resetterType = typeof(APF_R_Resetter);
+                    break;
+                case ResetChoice.RFL_R:
+                    redirectionManager.gameObject.AddComponent<RFL_Resetter>();
+                    redirectionManager.gameObject.AddComponent<ResetTriggeringController>();
+                    resetterType = typeof(RFL_Resetter);
                     break;
             }
             // BY DEFAULT ONLY ONE TYPE

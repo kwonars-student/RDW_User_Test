@@ -10,6 +10,7 @@ public abstract class Resetter : MonoBehaviour {
     enum Boundary { Top, Bottom, Right, Left };
 
     float maxX, maxZ;
+    public int state = 1; // for RFL
 
     /// <summary>
     /// Function called when reset trigger is signaled, to see if resetter believes resetting is necessary.

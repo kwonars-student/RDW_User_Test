@@ -53,7 +53,6 @@ public class APF_R_Resetter : Resetter
         // }
 
         overallInjectedRotation = 0;
-        //Debug.Log("RotationGain: "+Mathf.Abs((360-Mathf.Abs(targetAngle))/(targetAngle)));
         rotationGainMinusOne = (360/targetAngle) - 1;
         SetHUD();
     }
@@ -167,12 +166,9 @@ public class APF_R_Resetter : Resetter
     public override void ApplyResetting()
     {
         float remainingRotation = targetAngle - overallInjectedRotation;
-        //Debug.Log("obtainedW: "+obtainedW);
         if (remainingRotation < Mathf.Abs(redirectionManager.deltaDir))
         {
-            // Debug.Log("redirectionManager.deltaDir: "+redirectionManager.deltaDir);
-            // Debug.Log("remainingRotation: "+remainingRotation);
-
+            //Debug.Log("redirectionManager.deltaDir: "+redirectionManager.deltaDir);
             InjectRotation(remainingRotation);
             redirectionManager.OnResetEnd();
             overallInjectedRotation += remainingRotation;
@@ -182,7 +178,15 @@ public class APF_R_Resetter : Resetter
             // InjectRotation(redirectionManager.deltaDir); // 흰색 Body가 도는 것(deltaDir)에 더해 Plane이 이만큼 더 돈다는 뜻. deltaDir를 넣으면 2배 더 도는 것.
             InjectRotation(rotationGainMinusOne*redirectionManager.deltaDir); //theta + d theta = G theta. 따라서 d theta = (G-1)theta
             //Debug.Log("redirectionManager.deltaDir: "+redirectionManager.deltaDir); // +1.8도
-            overallInjectedRotation += redirectionManager.deltaDir; // deltaDir이나 deltaDirReal이나 값이 같으므로 상관 없음.
+            if(!isTurnLeft)
+            {
+                overallInjectedRotation += redirectionManager.deltaDir; // deltaDir이나 deltaDirReal이나 값이 같으므로 상관 없음.
+            }
+            else
+            {
+                overallInjectedRotation -= redirectionManager.deltaDir; // deltaDir이나 deltaDirReal이나 값이 같으므로 상관 없음.
+            }
+            
         }
     }
 

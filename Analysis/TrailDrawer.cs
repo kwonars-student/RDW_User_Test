@@ -4,6 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Redirection;
 
+using System.Text;
+using System.IO;
+using System;
+
+
 public class TrailDrawer : MonoBehaviour {
 
     //[SerializeField]
@@ -17,12 +22,18 @@ public class TrailDrawer : MonoBehaviour {
     float MIN_DIST = 0.1f;
     [SerializeField, Range(0.01f, 0.5f)]
     float PATH_WIDTH = 0.05f;
-    const float PATH_HEIGHT = 0.0001f;
+    const float PATH_HEIGHT = 942;// 0.0001f;
     
     [SerializeField]
     Color realTrailColor = new Color(1, 1, 0, 0.5f), virtualPathColor = new Color(0, 0, 1, 0.5f);
 
     List<Vector3> realTrailVertices = new List<Vector3>(), virtualTrailVertices = new List<Vector3>();
+
+    List<float> measuredTimeReal = new List<float>();
+    List<float> measuredTimeRealDir = new List<float>();
+    List<float> measuredTimeVirtual = new List<float>();
+    List<float> resetTime = new List<float>();
+    List<Vector3> realDir = new List<Vector3>();
 
     public const string REAL_TRAIL_NAME = "Real Trail", VIRTUAL_TRAIL_NAME = "Virtual Trail";
 
@@ -54,6 +65,70 @@ public class TrailDrawer : MonoBehaviour {
                 }
             }
         }
+    }
+
+    void OnApplicationQuit()
+    {
+        //Debug.Log("HHHHHHHHHHAAAAAAAAAAAAAAAAAAAAAAAAAA");
+
+        if(!redirectionManager.simulationManager.testSession)
+        {
+            string ExpName = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss") + "_" + redirectionManager.simulationManager.algorithmName + "_" + redirectionManager.roomTypeName;
+            string filePath_Real = "D:/S.U.Kwon/UserData/" + ExpName +"_Real.txt";
+            string filePath_Virtual = "D:/S.U.Kwon/UserData/" + ExpName +"_Virtual.txt";
+            string filePath_ResetTime = "D:/S.U.Kwon/UserData/" + ExpName +"_ResetTime.txt";
+            string filePath_RealDir = "D:/S.U.Kwon/UserData/" + ExpName +"_RealDir.txt";
+            if(!File.Exists(filePath_Real))
+            {
+                var file1 = File.CreateText(filePath_Real);
+                file1.Close();
+                StreamWriter sw1 = new StreamWriter(filePath_Real);
+                for (int i = 0; i < realTrailVertices.Count; i++)
+                {
+                    sw1.WriteLine(measuredTimeReal[i] + ", " + (realTrailVertices[i].x + ", " + realTrailVertices[i].z));
+                }
+                sw1.Flush();
+                sw1.Close();
+            }
+            if(!File.Exists(filePath_Virtual))
+            {
+                var file2 = File.CreateText(filePath_Virtual);
+                file2.Close();
+                StreamWriter sw2 = new StreamWriter(filePath_Virtual);
+                for (int i = 0; i < virtualTrailVertices.Count; i++)
+                {
+                    sw2.WriteLine(measuredTimeVirtual[i] + ", " + (virtualTrailVertices[i].x + "," + virtualTrailVertices[i].z));
+                }
+                sw2.Flush();
+                sw2.Close();
+            }
+            if(!File.Exists(filePath_ResetTime))
+            {
+                var file3 = File.CreateText(filePath_ResetTime);
+                file3.Close();
+                StreamWriter sw3 = new StreamWriter(filePath_ResetTime);
+                for (int i = 0; i < resetTime.Count; i++)
+                {
+                    sw3.WriteLine(resetTime[i]);
+                }
+                sw3.Flush();
+                sw3.Close();
+            }
+            if(!File.Exists(filePath_RealDir))
+            {
+                var file4 = File.CreateText(filePath_RealDir);
+                file4.Close();
+                StreamWriter sw4 = new StreamWriter(filePath_RealDir);
+                for (int i = 0; i < realDir.Count; i++)
+                {
+                    sw4.WriteLine(measuredTimeRealDir[i] + ", " + (realDir[i].x + "," + realDir[i].z));
+                }
+                sw4.Flush();
+                sw4.Close();
+            }
+
+        }
+
     }
 
     void OnEnable()
@@ -120,18 +195,31 @@ public class TrailDrawer : MonoBehaviour {
         if (isLogging)
         {
             if (drawRealTrail)
+            {
                 UpdateTrailPoints(realTrailVertices, realTrail, realTrailMesh);
+            }
+                
             if (drawVirtualTrail)
             {
                 // Reset Position of Virtual Trail
                 virtualTrail.position = Vector3.zero;
                 virtualTrail.rotation = Quaternion.identity;
 
-                UpdateTrailPoints(virtualTrailVertices, virtualTrail, virtualTrailMesh, 2 * PATH_HEIGHT);
+                UpdateTrailPoints(virtualTrailVertices, virtualTrail, virtualTrailMesh, PATH_HEIGHT*2);
             }
         }
     }
 
+    public void AddResetTime()
+    {
+        resetTime.Add(Time.time/0.8f);
+    }
+
+    public void AddRealDir()
+    {
+        measuredTimeRealDir.Add(Time.time/0.8f);
+        realDir.Add(redirectionManager.currDirReal);
+    }
     void UpdateTrailPoints(List<Vector3> vertices, Transform relativeTransform, Mesh mesh, float pathHeight = PATH_HEIGHT)
     {
         Vector3 currentPoint = Utilities.FlattenedPos3D(redirectionManager.headTransform.position, pathHeight);
@@ -139,11 +227,27 @@ public class TrailDrawer : MonoBehaviour {
         if (vertices.Count == 0)
         {
             vertices.Add(currentPoint);
+            if(pathHeight == PATH_HEIGHT) // When Real
+            {
+                measuredTimeReal.Add(Time.time/0.8f);
+            }
+            else // When Virtual
+            {
+                measuredTimeVirtual.Add(Time.time/0.8f);
+            }
         }
         else if (Vector3.Distance(vertices[vertices.Count - 1], currentPoint) > MIN_DIST)
         {
             vertices.Add(currentPoint);
             UpdateLine(mesh, vertices.ToArray(), Vector3.up, PATH_WIDTH);
+            if(pathHeight == PATH_HEIGHT) // When Real
+            {
+                measuredTimeReal.Add(Time.time/0.8f);
+            }
+            else // When Virtual
+            {
+                measuredTimeVirtual.Add(Time.time/0.8f);
+            }
         }
     }
 

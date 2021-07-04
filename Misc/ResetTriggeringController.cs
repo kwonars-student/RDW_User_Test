@@ -55,8 +55,8 @@ public class ResetTriggeringController : MonoBehaviour
 
         if(distancesFromResets.Min() < 0.3 && !rm.inReset)
         {
-            Debug.Log("rm.resetter.state: "+rm.resetter.state);
-            Debug.Log("minIndex: "+minIndex);
+            // Debug.Log("rm.resetter.state: "+rm.resetter.state);
+            // Debug.Log("minIndex: "+minIndex);
             
             // Show "Ready"
             if(rm.resetter.state == 1 || rm.resetter.state == 2)

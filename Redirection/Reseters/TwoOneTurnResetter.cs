@@ -20,7 +20,8 @@ public class TwoOneTurnResetter : Resetter {
 
     public override bool IsResetRequired()
     {
-        return !isUserFacingAwayFromWall();
+        return true;
+        // return !isUserFacingAwayFromWall();
     }
 
     public override void InitializeReset()
@@ -52,7 +53,7 @@ public class TwoOneTurnResetter : Resetter {
     public override void FinalizeReset()
     {
         // Destroy(instanceHUD.gameObject); Original Spin In Place object
-        GameObject.Find("TurnBackSign").GetComponent<Canvas>().enabled = false;
+        GameObject.Find("TurnAroundSign").GetComponent<Canvas>().enabled = false;
         
     }
 
@@ -67,7 +68,7 @@ public class TwoOneTurnResetter : Resetter {
         // instanceHUD.localPosition = instanceHUD.position;
         // instanceHUD.localRotation = instanceHUD.rotation;
 
-        GameObject.Find("TurnBackSign").GetComponent<Canvas>().enabled = true;
+        GameObject.Find("TurnAroundSign").GetComponent<Canvas>().enabled = true;
     }
 
     public override void SimulatedWalkerUpdate()

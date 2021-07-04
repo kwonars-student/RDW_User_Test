@@ -19,8 +19,9 @@ public class CollisionChecker : MonoBehaviour {
         if (other == colliderObject && Vector3.Dot(this.transform.up, redirectionManager.currDir) < 0 && !redirectionManager.tilingMode)
         {
             redirectionManager.OnResetTrigger();
-            //Debug.Log(this.transform.name);
-            //Debug.Log();
+            Debug.Log(this.transform.name);
+            // Debug.Log("this.transform.up: "+this.transform.up);
+            // Debug.Log("redirectionManager.currDir: "+redirectionManager.currDir);
         }
     }
 

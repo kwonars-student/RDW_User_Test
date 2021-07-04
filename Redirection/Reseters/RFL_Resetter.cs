@@ -24,10 +24,21 @@ public class RFL_Resetter : Resetter {
     public override void InitializeReset()
     {
         overallInjectedRotation = 0;
-        for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
+        if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
         {
-            GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(false);
+            for(int i = 0; i < GameObject.Find("DoorsForRoom").transform.childCount; i++)
+            {
+                GameObject.Find("DoorsForRoom").transform.GetChild(i).gameObject.SetActive(false);
+            }
         }
+        else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+        {
+            for(int i = 0; i < GameObject.Find("DoorsForSquare").transform.childCount; i++)
+            {
+                GameObject.Find("DoorsForSquare").transform.GetChild(i).gameObject.SetActive(false);
+            }
+        }
+
         virtualCenter = redirectionManager.trackedSpace.position; //current Plane 위치
         rtc = GameObject.Find("Redirected User").GetComponent<ResetTriggeringController>();
         SetHUD();
@@ -45,9 +56,20 @@ public class RFL_Resetter : Resetter {
                 InjectRotation(remainingRotation);
                 redirectionManager.OnResetEnd();
                 overallInjectedRotation += remainingRotation;
-                for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
+
+                if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
                 {
-                    GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(true);
+                    for(int i = 0; i < GameObject.Find("DoorsForRoom").transform.childCount; i++)
+                    {
+                        GameObject.Find("DoorsForRoom").transform.GetChild(i).gameObject.SetActive(true);
+                    }                    
+                }
+                else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+                {
+                    for(int i = 0; i < GameObject.Find("DoorsForSquare").transform.childCount; i++)
+                    {
+                        GameObject.Find("DoorsForSquare").transform.GetChild(i).gameObject.SetActive(true);
+                    }
                 }
 
                 // Move Up
@@ -55,15 +77,31 @@ public class RFL_Resetter : Resetter {
                 {
                     state = 3;
                     resetIndex = 0;
-                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
-                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                    if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
+                    {
+                        GameObject.Find("DoorsForRoom").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForRoom").transform.GetChild(3).gameObject.SetActive(false);
+                    }
+                    else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+                    {
+                        GameObject.Find("DoorsForSquare").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForSquare").transform.GetChild(3).gameObject.SetActive(false);
+                    }
                 }
                 else if(rtc.minIndex == 0 && state == 2)
                 {
                     state = 4;
                     resetIndex = 2;
-                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
-                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                    if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
+                    {
+                        GameObject.Find("DoorsForRoom").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForRoom").transform.GetChild(3).gameObject.SetActive(false);
+                    }
+                    else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+                    {
+                        GameObject.Find("DoorsForSquare").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForSquare").transform.GetChild(3).gameObject.SetActive(false);
+                    }
                 }
                 else if(rtc.minIndex == 0 && state == 3)
                 {
@@ -103,15 +141,31 @@ public class RFL_Resetter : Resetter {
                 {
                     state = 3;
                     resetIndex = 2;
-                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
-                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                    if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
+                    {
+                        GameObject.Find("DoorsForRoom").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForRoom").transform.GetChild(3).gameObject.SetActive(false);
+                    }
+                    else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+                    {
+                        GameObject.Find("DoorsForSquare").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForSquare").transform.GetChild(3).gameObject.SetActive(false);
+                    }
                 }
                 else if(rtc.minIndex == 2 && state == 2)
                 {
                     state = 4;
                     resetIndex = 0;
-                    GameObject.Find("Doors").transform.GetChild(1).gameObject.SetActive(false);
-                    GameObject.Find("Doors").transform.GetChild(3).gameObject.SetActive(false);
+                    if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.RoomType)
+                    {
+                        GameObject.Find("DoorsForRoom").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForRoom").transform.GetChild(3).gameObject.SetActive(false);
+                    }
+                    else if(redirectionManager.spaceShape == GeometryInfo.SpaceShape.SquareType)
+                    {
+                        GameObject.Find("DoorsForSquare").transform.GetChild(1).gameObject.SetActive(false);
+                        GameObject.Find("DoorsForSquare").transform.GetChild(3).gameObject.SetActive(false);
+                    }
                 }
                 else if(rtc.minIndex == 2 && state == 3)
                 {
@@ -162,7 +216,7 @@ public class RFL_Resetter : Resetter {
     public override void FinalizeReset()
     {
         // Destroy(instanceHUD.gameObject); Original Spin In Place object
-        GameObject.Find("TurnBackSign").GetComponent<Canvas>().enabled = false;
+        GameObject.Find("TurnAroundSign").GetComponent<Canvas>().enabled = false;
         
     }
 
@@ -177,7 +231,7 @@ public class RFL_Resetter : Resetter {
         // instanceHUD.localPosition = instanceHUD.position;
         // instanceHUD.localRotation = instanceHUD.rotation;
 
-        GameObject.Find("TurnBackSign").GetComponent<Canvas>().enabled = true;
+        GameObject.Find("TurnAroundSign").GetComponent<Canvas>().enabled = true;
     }
 
     public override void SimulatedWalkerUpdate()

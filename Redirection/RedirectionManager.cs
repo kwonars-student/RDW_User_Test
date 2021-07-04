@@ -46,6 +46,8 @@ public class RedirectionManager : MonoBehaviour {
     [HideInInspector]
     public Transform body;
     [HideInInspector]
+    public Transform duplicatedBody;
+    [HideInInspector]
     public Transform trackedSpace;
     [HideInInspector]
     public Transform simulatedHead;
@@ -95,7 +97,12 @@ public class RedirectionManager : MonoBehaviour {
     
     [HideInInspector]
     public bool tilingMode = false;
+
+    [HideInInspector]
     public bool controllerTriggered = false;
+
+    [HideInInspector]
+    public string roomTypeName;
 
     public GeometryInfo.SpaceShape spaceShape;
 
@@ -103,9 +110,12 @@ public class RedirectionManager : MonoBehaviour {
     {
         startTimeOfProgram = System.DateTime.Now.ToString("yyyy MM dd HH:mm:ss");
 
+        setRoomType();
+
         getGeometryInfo();
 
         GetBody();
+        GetDuplicatedBody();
         GetTrackedSpace();
         GetSimulatedHead();
 
@@ -151,6 +161,8 @@ public class RedirectionManager : MonoBehaviour {
             MOVEMENT_CONTROLLER = MovementController.Tracker;
         }
 
+        setDoorSetting();
+
     }
 
 	// Use this for initialization
@@ -171,14 +183,18 @@ public class RedirectionManager : MonoBehaviour {
         //if (MOVEMENT_CONTROLLER == MovementController.AutoPilot)
         //    simulatedWalker.WalkUpdate();
 
+        if(Time.time/0.8f > 180f)
+        {
+            ExitGame();
+        }
+
         UpdateCurrentUserState();
         CalculateStateChanges();
-        //Debug.Log(tilingMode);
 
         // BACK UP IN CASE UNITY TRIGGERS FAILED TO COMMUNICATE RESET (Can happen in high speed simulations)
-        if (resetter != null && !inReset && resetter.IsUserOutOfBounds() && !tilingMode)
+        //if (resetter != null && !inReset && resetter.IsUserOutOfBounds() && !tilingMode)
+        if (resetter != null && !inReset && false && !tilingMode)
         {
-            //Debug.Log("Never Happened");
             Debug.LogWarning("Reset Aid Helped!");
             OnResetTrigger();
         }
@@ -210,6 +226,7 @@ public class RedirectionManager : MonoBehaviour {
         UpdatePreviousUserState();
 
         UpdateBodyPose();
+        UpdateDuplicatedBodyPose();
     }
 
     public float GetDeltaTime()
@@ -226,6 +243,12 @@ public class RedirectionManager : MonoBehaviour {
             return simulatedTime;
         else
             return Time.time;
+    }
+
+    void UpdateDuplicatedBodyPose()
+    {
+        duplicatedBody.position = currPosReal + new Vector3(-200f, 0f, 200f);
+        duplicatedBody.rotation = Quaternion.LookRotation(Utilities.FlattenedDir3D(currDirReal.normalized), Vector3.up);
     }
 
     void UpdateBodyPose()
@@ -324,14 +347,6 @@ public class RedirectionManager : MonoBehaviour {
         if (redirector == null)
             this.gameObject.AddComponent<NullRedirector>();
         redirector = this.gameObject.GetComponent<Redirector>();
-
-        if(tilingMode)
-        {
-            for(int i = 0; i < GameObject.Find("Doors").transform.childCount; i++)
-            {
-                GameObject.Find("Doors").transform.GetChild(i).gameObject.SetActive(true);
-            }
-        }
     }
 
     void GetResetter()
@@ -387,6 +402,11 @@ public class RedirectionManager : MonoBehaviour {
         body = transform.Find("Body");
     }
 
+    void GetDuplicatedBody()
+    {
+        duplicatedBody = GameObject.Find("DuplicatedBody").transform;
+    }
+
     void GetTrackedSpace()
     {
         trackedSpace = transform.Find("Tracked Space");
@@ -408,6 +428,7 @@ public class RedirectionManager : MonoBehaviour {
         currPosReal = Utilities.GetRelativePosition(currPos, this.transform);
         currDir = Utilities.FlattenedDir3D(headTransform.forward);
         currDirReal = Utilities.FlattenedDir3D(Utilities.GetRelativeDirection(currDir, this.transform));
+        trailDrawer.AddRealDir();
     }
 
     void UpdatePreviousUserState()
@@ -426,7 +447,6 @@ public class RedirectionManager : MonoBehaviour {
 
     public void OnResetTrigger()
     {
-        //print("RESET TRIGGER");
         if (inReset)
             return;
         //print("NOT IN RESET");
@@ -437,12 +457,14 @@ public class RedirectionManager : MonoBehaviour {
             //print("RESET WAS REQUIRED");
             resetter.InitializeReset();
             inReset = true;
+            trailDrawer.AddResetTime();
+
         }
-        else if(tilingMode) // 여기에 리셋 위치 조건 추가 필요, 리셋 시 사람의 방향 고려 필요, 리셋 시 기대 위치로 천천히 이동하는 로직 필요, 리셋 물체 구현 필요 v,
-                            // 조개줍기 등의 시나리오 필요, 사운드 필요, Drawer 보이기 안보이기 필요
+        else if(tilingMode) // 조개줍기 등의 시나리오 필요, 사운드 필요, Drawer 보이기 안보이기 필요
         {
             resetter.InitializeReset();
             inReset = true;
+            trailDrawer.AddResetTime();
         }
     }
 
@@ -516,5 +538,59 @@ public class RedirectionManager : MonoBehaviour {
     public void getGeometryInfo()
     {
         geometryInfo = new GeometryInfo(spaceShape);
+    }
+
+    public void setRoomType()
+    {
+        if(spaceShape == GeometryInfo.SpaceShape.RoomType)
+        {
+            GameObject.Find("TransparentWallsForSquare").gameObject.SetActive(false);
+            for(int i = 0; i < GameObject.Find("TransparentWallsForRoom").transform.childCount; i++)
+            {
+                GameObject.Find("TransparentWallsForRoom").transform.GetChild(i).gameObject.SetActive(true);
+            }
+            GameObject.Find("Terrain").transform.GetChild(0).gameObject.SetActive(true);
+            roomTypeName = "ROOM";
+        }
+        else if(spaceShape == GeometryInfo.SpaceShape.SquareType)
+        {
+            GameObject.Find("TransparentWallsForRoom").gameObject.SetActive(false);
+            for(int i = 0; i < GameObject.Find("TransparentWallsForSquare").transform.childCount; i++)
+            {
+                GameObject.Find("TransparentWallsForSquare").transform.GetChild(i).gameObject.SetActive(true);
+            }
+            GameObject.Find("Terrain").transform.GetChild(1).gameObject.SetActive(true);
+            roomTypeName = "SQUARE";
+        }
+    }
+
+    public void setDoorSetting()
+    {
+        if(tilingMode)
+        {
+            if(spaceShape == GeometryInfo.SpaceShape.RoomType)
+            {
+                for(int i = 0; i < GameObject.Find("DoorsForRoom").transform.childCount; i++)
+                {
+                    GameObject.Find("DoorsForRoom").transform.GetChild(i).gameObject.SetActive(true);
+                }
+            }
+            else if(spaceShape == GeometryInfo.SpaceShape.SquareType)
+            {
+                for(int i = 0; i < GameObject.Find("DoorsForSquare").transform.childCount; i++)
+                {
+                    GameObject.Find("DoorsForSquare").transform.GetChild(i).gameObject.SetActive(true);
+                }
+            }
+        }
+    }
+
+    public void ExitGame()
+    {
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+                Application.Quit(); // 어플리케이션 종료
+        #endif
     }
 }

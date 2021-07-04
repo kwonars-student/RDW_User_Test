@@ -30,6 +30,8 @@ public class SimulationManager : MonoBehaviour {
 
     [SerializeField]
     public bool runInSimulationMode = false;
+    [SerializeField]
+    public bool testSession = false;
 
     [SerializeField]
     AlgorithmChoice condAlgorithm;
@@ -77,7 +79,8 @@ public class SimulationManager : MonoBehaviour {
     [HideInInspector]
     public bool userIsWalking = false;
 
-    
+    [HideInInspector]
+    public string algorithmName;
 
     public struct InitialConfiguration
     {
@@ -571,6 +574,7 @@ public class SimulationManager : MonoBehaviour {
                 case AlgorithmChoice.S2C:
                     redirectionManager.gameObject.AddComponent<S2CRedirector>();
                     redirectorType = typeof(S2CRedirector);
+                    algorithmName = "S2C";
                     break;
                 case AlgorithmChoice.S2O:
                     redirectorType = typeof(S2ORedirector);
@@ -581,11 +585,13 @@ public class SimulationManager : MonoBehaviour {
                 case AlgorithmChoice.APF:
                     redirectionManager.gameObject.AddComponent<APFRedirector>();
                     redirectorType = typeof(APFRedirector);
+                    algorithmName = "APF";
                     break;
                 case AlgorithmChoice.RFL:
                     redirectionManager.gameObject.AddComponent<RFLRedirector>();
                     redirectionManager.tilingMode = true;
                     redirectorType = typeof(RFLRedirector);
+                    algorithmName = "RFL";
                     break;
                 //case 4:
                 //    algorithmChoice = AlgorithmChoice.CenterBasedTransGainSpeedUp;
@@ -725,6 +731,7 @@ public class SimulationManager : MonoBehaviour {
                 case AlgorithmChoice.S2C:
                     redirectionManager.gameObject.AddComponent<S2CRedirector>();
                     redirectorType = typeof(S2CRedirector);
+                    algorithmName = "S2C";
                     break;
                 case AlgorithmChoice.S2O:
                     redirectorType = typeof(S2ORedirector);
@@ -735,10 +742,13 @@ public class SimulationManager : MonoBehaviour {
                 case AlgorithmChoice.APF:
                     redirectionManager.gameObject.AddComponent<APFRedirector>();
                     redirectorType = typeof(APFRedirector);
+                    algorithmName = "APF";
                     break;
                 case AlgorithmChoice.RFL:
                     redirectionManager.gameObject.AddComponent<RFLRedirector>();
+                    redirectionManager.tilingMode = true;
                     redirectorType = typeof(RFLRedirector);
+                    algorithmName = "RFL";
                     break;
                 //case 4:
                 //    algorithmChoice = AlgorithmChoice.CenterBasedTransGainSpeedUp;

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Redirection;
 
 public class RedirectionManager : MonoBehaviour {
@@ -106,6 +107,23 @@ public class RedirectionManager : MonoBehaviour {
 
     public GeometryInfo.SpaceShape spaceShape;
 
+    [HideInInspector]
+    bool needChange1 = false;
+    [HideInInspector]
+    bool needChange2 = false;
+    [HideInInspector]
+    bool needChange3 = false;
+    [HideInInspector]
+    bool needChange4 = false;
+    [HideInInspector]
+    List<int> randomized;
+    
+    [HideInInspector]
+    int initialIndex;
+
+    [HideInInspector]
+    CylinderCollisionTrigger cylinderCollisionTrigger;
+
     void Awake()
     {
         startTimeOfProgram = System.DateTime.Now.ToString("yyyy MM dd HH:mm:ss");
@@ -122,6 +140,8 @@ public class RedirectionManager : MonoBehaviour {
         GetSimulationManager();
         SetReferenceForSimulationManager();
         simulationManager.Initialize();
+        
+        GetCylinderCollisionTrigger();
 
         GetRedirector();
         GetResetter();
@@ -162,6 +182,7 @@ public class RedirectionManager : MonoBehaviour {
         }
 
         setDoorSetting();
+        setCylinderCollisionTrigger();
 
     }
 
@@ -169,12 +190,58 @@ public class RedirectionManager : MonoBehaviour {
 	void Start () {
         simulatedTime = 0;
         UpdatePreviousUserState();
+
+        List<int> randomOrder = new List<int>() {0, 1, 2, 3};
+        System.Random rnd = new System.Random();
+        System.Linq.IOrderedEnumerable<int> randomizedNums = randomOrder.OrderBy(item => rnd.Next());
+        randomized = new List<int>();
+        foreach (int i in randomizedNums)
+        {
+            randomized.Add(i);
+        }
+
+        for(int i = 0; i<4; i++)
+        {
+            if(randomized[i] == 0)
+            {
+                initialIndex = i;
+            }
+        }
+
+        if(initialIndex == 0)
+        {
+            needChange1 = true;
+            needChange2 = false;
+            needChange3 = false;
+            needChange4 = false;
+        }
+        else if(initialIndex == 1)
+        {
+            needChange1 = false;
+            needChange2 = true;
+            needChange3 = false;
+            needChange4 = false;
+        }
+        else if(initialIndex == 2)
+        {
+            needChange1 = false;
+            needChange2 = false;
+            needChange3 = true;
+            needChange4 = false;
+        }
+        else if(initialIndex == 3)
+        {
+            needChange1 = false;
+            needChange2 = false;
+            needChange3 = false;
+            needChange4 = true;
+        }
 	}
 	
 	// Update is called once per frame
-	void Update () {
+	// void Update () {
 
-	}
+	// }
 
     void FixedUpdate()
     {
@@ -186,6 +253,79 @@ public class RedirectionManager : MonoBehaviour {
         if(Time.time/0.8f > 180f)
         {
             ExitGame();
+        }
+
+        if(needChange1)
+        {
+            if(roomTypeName=="SQUARE")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            else if(roomTypeName=="ROOM")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            needChange1 = false;     
+        }
+        else if(needChange2)
+        {
+            if(roomTypeName=="SQUARE")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            else if(roomTypeName=="ROOM")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            needChange2 = false;
+        }
+        else if(needChange3)
+        {
+            if(roomTypeName=="SQUARE")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            else if(roomTypeName=="ROOM")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(true);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+            }
+            needChange3 = false;
+        }
+        else if(needChange4)
+        {
+            if(roomTypeName=="SQUARE")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(true);
+            }
+            else if(roomTypeName=="ROOM")
+            {
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+                GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(true);
+            }
+            needChange4 = false;
         }
 
         UpdateCurrentUserState();
@@ -592,5 +732,93 @@ public class RedirectionManager : MonoBehaviour {
         #else
                 Application.Quit(); // 어플리케이션 종료
         #endif
+    }
+
+    void GetCylinderCollisionTrigger()
+    {
+        if(roomTypeName == "SQUARE")
+        {
+            cylinderCollisionTrigger = GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.gameObject.GetComponent<CylinderCollisionTrigger>();
+        }
+        else if(roomTypeName == "ROOM")
+        {
+            cylinderCollisionTrigger = GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.gameObject.GetComponent<CylinderCollisionTrigger>();
+        }
+        
+        //Debug.Log(cylinderCollisionTrigger.name);
+        //cylinderCollisionTrigger = GameObject.Find("Terrain").transform.gameObject.GetComponentInChildren<CylinderCollisionTrigger>();
+
+        //Debug.Log("abccddd");
+        // if(roomTypeName=="SQUARE")
+        // {
+        //     GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(true);
+        //     GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+        //     GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+        //     GameObject.Find("Terrain/TilingObstaclesForSquare/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+        // }
+        // else if(roomTypeName=="ROOM")
+        // {
+        //     GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[0]).gameObject.SetActive(true);
+        //     GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[1]).gameObject.SetActive(false);
+        //     GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[2]).gameObject.SetActive(false);
+        //     GameObject.Find("Terrain/TilingObstaclesForRoom/Cylinders").transform.GetChild(randomized[3]).gameObject.SetActive(false);
+        // }
+    }
+
+
+    void setCylinderCollisionTrigger()
+    {
+        if (cylinderCollisionTrigger != null)
+        {
+            cylinderCollisionTrigger.redirectionManager = this;
+            cylinderCollisionTrigger.bodyCollider = body.GetComponentInChildren<CapsuleCollider>();
+        }
+        cylinderCollisionTrigger.Initialize();
+            
+    }
+    public void setNeedChange()
+    {
+        int index =0;
+        if(initialIndex < 3)
+        {
+            initialIndex++;
+            index = randomized[initialIndex];
+        }
+        else
+        {
+            initialIndex = 0;
+            index = randomized[0];
+        }
+
+        if(index == 0)
+        {
+            needChange1 = true;
+            needChange2 = false;
+            needChange3 = false;
+            needChange4 = false;
+        }
+        else if(index == 1)
+        {
+            needChange1 = false;
+            needChange2 = true;
+            needChange3 = false;
+            needChange4 = false;
+        }
+        else if(index == 2)
+        {
+            needChange1 = false;
+            needChange2 = false;
+            needChange3 = true;
+            needChange4 = false;
+        }
+        else if(index == 3)
+        {
+            needChange1 = false;
+            needChange2 = false;
+            needChange3 = false;
+            needChange4 = true;
+        }
+        
+
     }
 }

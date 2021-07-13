@@ -9,10 +9,10 @@ public class CollisionChecker : MonoBehaviour {
     [HideInInspector]
     public Collider colliderObject;
 
-    public void Initialize()
-    {
+    // public void Initialize()
+    // {
 
-    }
+    // }
 
     void OnTriggerEnter(Collider other)
     {

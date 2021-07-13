@@ -53,7 +53,53 @@ public class ResetTriggeringController : MonoBehaviour
         }
         minIndex = distancesFromResets.IndexOf(distancesFromResets.Min());
 
-        if(distancesFromResets.Min() < 0.3 && !rm.inReset)
+        bool watchingDoor = true;
+        if (rm.currPosReal.z > 0 && Mathf.Abs(rm.currPosReal.x) < Mathf.Abs(rm.currPosReal.z))
+        {
+            if(rm.currDirReal.z < 0)
+            {
+                watchingDoor = false;
+            }
+            else
+            {
+                watchingDoor = true;
+            }
+        }
+        else if (rm.currPosReal.x > 0 && Mathf.Abs(rm.currPosReal.x) > Mathf.Abs(rm.currPosReal.z))
+        {
+            if(rm.currDirReal.x < 0)
+            {
+                watchingDoor = false;
+            }
+            else
+            {
+                watchingDoor = true;
+            }
+        }
+        else if (rm.currPosReal.z < 0 && Mathf.Abs(rm.currPosReal.x) < Mathf.Abs(rm.currPosReal.z))
+        {
+            if(rm.currDirReal.z > 0)
+            {
+                watchingDoor = false;
+            }
+            else
+            {
+                watchingDoor = true;
+            }
+        }
+        else if (rm.currPosReal.x < 0 && Mathf.Abs(rm.currPosReal.x) > Mathf.Abs(rm.currPosReal.z))
+        {
+            if(rm.currDirReal.x > 0)
+            {
+                watchingDoor = false;
+            }
+            else
+            {
+                watchingDoor = true;
+            }
+        }
+
+        if(distancesFromResets.Min() < 0.3 && !rm.inReset && watchingDoor)
         {
             // Debug.Log("rm.resetter.state: "+rm.resetter.state);
             // Debug.Log("minIndex: "+minIndex);
